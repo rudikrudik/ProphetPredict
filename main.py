@@ -10,7 +10,6 @@ from tkinter import ttk
 from ttkbootstrap import Style
 from ttkbootstrap.constants import *
 from tkinter.filedialog import askopenfilename
-from tkinter.filedialog import asksaveasfile
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
@@ -25,6 +24,7 @@ class App(tkinter.Tk):
         self.file_info = tkinter.StringVar(value='0')
         self.predict_data_label = tkinter.StringVar()
         self.slider_data_month = tkinter.StringVar()
+        self.slider_month_predict = tkinter.StringVar()
         self.month_slider = ttk.Scale()
         self.notebook = ttk.Notebook()
         self.test_tab = ttk.Frame()
@@ -90,7 +90,7 @@ class App(tkinter.Tk):
         self.month_slider = ttk.Scale(master=cut_month, orient=HORIZONTAL, command=self.slider_data)
         self.month_slider.pack(fill=X, padx=(10, 10), pady=(10, 10))
 
-        month_slider_label = ttk.Label(master=cut_month, text='1', textvariable=self.slider_data_month)
+        month_slider_label = ttk.Label(master=cut_month, textvariable=self.slider_data_month)
         month_slider_label.pack()
 
         # Фрейм кнопок
@@ -107,9 +107,26 @@ class App(tkinter.Tk):
         test_frame_data.pack(fill=BOTH)
         test_data = ttk.Label(test_frame_data, textvariable=self.predict_data_label)
         test_data.pack(side=LEFT)
-        # Место вывода для данных
 
+        # Вкладка Predict
         self.predict_tab = ttk.Frame(self.notebook, padding=10)
+        # Фрейм выбора количества месяцев для предсказания
+        predict_month = ttk.LabelFrame(master=self.predict_tab, text='Predict Month:')
+        predict_month.pack(fill=X)
+        # Слайдер количества месяцев
+        month_predict_slider = ttk.Scale(master=predict_month, orient=HORIZONTAL, from_=1, to=100,
+                                         command=self.slider_predict)
+        month_predict_slider.pack(fill=X, padx=(10, 10), pady=(10, 10))
+        month_predict_slider_label = ttk.Label(master=predict_month, textvariable=self.slider_month_predict)
+        month_predict_slider_label.pack()
+        # Фрейм кнопок
+        btn_predict_frame = ttk.LabelFrame(self.predict_tab, text='Action:')
+        btn_predict_frame.pack(fill=X, padx=(5, 5), pady=(5, 5))
+        btn_predict_graph = ttk.Button(btn_predict_frame, text='Create Graph', command=self.create_predict_graph)
+        btn_predict_graph.pack(pady=(10, 10))
+        btn_predict_save_graph = ttk.Button(btn_predict_frame, text='Save Graph', command=self.save_predict_graph)
+        btn_predict_save_graph.pack(pady=(5, 5))
+        btn_predict_save_graph.config(state='disabled')
 
         self.notebook.add(settings_tab, text='Settings')
         self.notebook.add(self.test_tab, state='disabled', text='Test')
@@ -146,6 +163,9 @@ class App(tkinter.Tk):
     def slider_data(self, data):
         self.slider_data_month.set(f"{float(data):.0f}")
 
+    def slider_predict(self, data):
+        self.slider_month_predict.set(f"{float(data):.0f}")
+
     def create_test_graph(self):
         test_data = Data(self.path_var.get(), tail=int(self.slider_data_month.get()))
         all_test_data = Data(self.path_var.get())
@@ -160,17 +180,28 @@ class App(tkinter.Tk):
         self.predict_data_label.set(temp_data_to_label)
         self.read_file_data.set('')
 
-        # Удаляем предыдущие графики и рисуем новый
-        self.plot_canvas.get_tk_widget().delete()
-
         test_graph = Plot(all_test_data.get_data_no_tail, prophet_data.predict)
+        self.clear_plot_canvas(test_graph)
 
+    def create_predict_graph(self):
+        actual_data = Data(self.path_var.get())
+        predict_month_frame = MakeFrame.result(PredictMonth.month(actual_data.get_last_date,
+                                               int(self.slider_month_predict.get())))
+        predict_data = ProphetDataPredict(actual_data.get_data_no_tail, predict_month_frame)
+
+        predict_graph = Plot(actual_data.get_data_no_tail, predict_data.predict, True)
+        self.clear_plot_canvas(predict_graph)
+
+    def clear_plot_canvas(self, graph):
         self.plot_canvas.get_tk_widget().destroy()
-        self.plot_canvas = FigureCanvasTkAgg(test_graph.draw(self.style.theme_use()), master=self.result_frame)
+        self.plot_canvas = FigureCanvasTkAgg(graph.draw(self.style.theme_use()), master=self.result_frame)
         self.plot_canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True, padx=(5, 5), pady=(5, 5))
         self.plot_canvas.draw()
 
     def save_test_graph(self):
+        pass
+
+    def save_predict_graph(self):
         pass
 
 
