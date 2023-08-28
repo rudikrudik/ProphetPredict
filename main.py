@@ -1,4 +1,3 @@
-import database
 import tkinter
 import tkinter as ttk
 
@@ -23,8 +22,8 @@ class App(tkinter.Tk):
         self.read_file_data = tkinter.StringVar()
         self.file_info = tkinter.StringVar(value='0')
         self.predict_data_label = tkinter.StringVar()
-        self.slider_data_month = tkinter.StringVar()
-        self.slider_month_predict = tkinter.StringVar()
+        self.slider_data_month = tkinter.StringVar(value='1')
+        self.slider_month_predict = tkinter.StringVar(value='1')
         self.month_slider = ttk.Scale()
         self.notebook = ttk.Notebook()
         self.test_tab = ttk.Frame()
@@ -149,7 +148,7 @@ class App(tkinter.Tk):
             self.path_var.set(path)
 
     def read_file(self):
-        data = database.Data(self.path_var.get())
+        data = Data(self.path_var.get())
         self.read_file_data.set(data.get_raw_data)
         self.file_info.set(data.get_frame_size)
         if self.file_info.get():
