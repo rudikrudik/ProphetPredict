@@ -178,7 +178,6 @@ class App(tkinter.Tk):
             temp_data_to_label += str(data[0]) + ' ' + str(data[1])[:10] + '%' + '\n'
 
         self.predict_data_label.set(temp_data_to_label)
-        self.read_file_data.set('')
 
         test_graph = Plot(all_test_data.get_data_no_tail, prophet_data.predict)
         self.clear_plot_canvas(test_graph)
@@ -193,6 +192,7 @@ class App(tkinter.Tk):
         self.clear_plot_canvas(predict_graph)
 
     def clear_plot_canvas(self, graph):
+        self.read_file_data.set('')
         self.plot_canvas.get_tk_widget().destroy()
         self.plot_canvas = FigureCanvasTkAgg(graph.draw(self.style.theme_use()), master=self.result_frame)
         self.plot_canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True, padx=(5, 5), pady=(5, 5))
